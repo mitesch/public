@@ -1,36 +1,61 @@
-# This is a basic workflow to help you get started with Actions
+name: npm seg fault
+# This workflow tests examples from the examples directory of this repo.
 
-name: CI
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-24.04-arm
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+  example:
+    strategy:
+      fail-fast: false
+      matrix:
+        num: [1,2,3,4,5]
+        num2: [1,2,3,4,5]
+        num3: [1,2,3,4,5]
+        os: [ ubuntu-24.04-arm ]
+    runs-on: ${{ matrix.os }}
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
-
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: wget https://test.openquantumsafe.org/CA.crt
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: vm info
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          curl -s -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" | jq      
+          echo '::warning:: ' $(curl -s -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" | jq | grep "vmSize")
+          sudo sysctl -w kernel.print-fatal-signals=1
+        
+      - uses: actions/checkout@v4
+      - name: Run test script
+        #run: valgrind --leak-check=full  npm --version
+        run: | 
+          npm --version
+          rustc --version
+
+      - name: evtstream
+        if: always()
+        run: |
+          grep CONFIG_ARM_ARCH_TIMER_EVTSTREAM /boot/config-`uname -r`
+
+      - name: uptime
+        if: always()
+        run: uptime
+          
+      - name: chown
+        if: always()
+        run: sudo chown -R runner:runner /var/log* /var/lib/systemd
+        
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          include-hidden-files: true
+          name: failed-logs-${{ matrix.directory }}-${{ matrix.os }}
+          path: |
+            /var/lib/systemd/coredump
+            /var/log*
+            /home/runner/.rustup
+
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: success-logs-${{ matrix.directory }}-${{ matrix.os }}
+          path: |
+            /var/lib/systemd/coredump
+            /var/log*
+
