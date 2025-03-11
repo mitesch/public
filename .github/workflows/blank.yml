@@ -45,7 +45,7 @@ jobs:
         if: failure()
         with:
           include-hidden-files: true
-          name: failed-logs-${{ matrix.directory }}-${{ matrix.os }}
+          name: failed-logs-${{ matrix.os }}-${{ matrix.num }}-${{ matrix.num2 }}-${{ matrix.num3 }}
           path: |
             /var/lib/systemd/coredump
             /var/log*
