@@ -54,7 +54,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: success-logs-${{ matrix.directory }}-${{ matrix.os }}
+          name: success-logs-${{ matrix.os }},${{ matrix.num }},${{ matrix.num2 }},${{ matrix.num3 }}
           path: |
             /var/lib/systemd/coredump
             /var/log*
