@@ -16,4 +16,4 @@ jobs:
     steps:
       - name: vm info
         run: |
-          Get-Location
+          go env
