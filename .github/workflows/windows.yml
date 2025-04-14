@@ -1,0 +1,19 @@
+name: windows
+# This workflow tests examples from the examples directory of this repo.
+
+on:
+  workflow_dispatch:
+  #schedule:
+  #  - cron: "0-59/30 * * * *"   # <=== Change this value
+    
+jobs:
+  example:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ windows-2025 windows-2022 windows-2019 ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: vm info
+        run: |
+          cd
